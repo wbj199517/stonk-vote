@@ -11,7 +11,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import mockBackend, { Topic } from './mockBackend';
 import stkLogo from './image/stklogo.png';
-import bg from './image/bground.jpg';
+import bg from './image/bground1.jpeg';
 import stkguy from './image/stkguy.png';
 
 const VotingPage: React.FC = () => {
@@ -28,6 +28,9 @@ const VotingPage: React.FC = () => {
     SOL: '#FF9800',
     STONKS: '#2196F3',
   });
+
+  const [clickCount, setClickCount] = useState(0);
+  const [showImage, setShowImage] = useState(false);
 
   useEffect(() => {
     const loadTopics = async () => {
@@ -62,6 +65,13 @@ const VotingPage: React.FC = () => {
 
     loadTopics();
   }, []);
+
+  const handleLogoClick = () => {
+    if (clickCount + 1 === 20) {
+      setShowImage(true); // Show 彩蛋 after 20 clicks
+    }
+    setClickCount(prev => prev + 1);
+  };
 
   const checkIfWalletHasVoted = async () => {
     if (walletAddress) {
@@ -159,31 +169,57 @@ const VotingPage: React.FC = () => {
     <Box
       sx={{
         textAlign: 'center',
-        padding: 4,
+        padding: 2,
         backgroundColor: '#121212',
         minHeight: '100vh',
-        backgroundImage: `url(${bg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
+        justifyContent: 'center',
+        backgroundImage: `url(${bg})`,
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        width: '100%',
+        maxWidth: '100vw',
       }}
     >
+      <Button
+        variant="text" 
+        onClick={() => navigate('/')}
+        sx={{
+          position: 'absolute',
+          top: '5%',
+          left: '5%',
+          color: 'white',
+          fontSize: '1.2rem',
+          fontWeight: 'bold', 
+          '&:hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          },
+        }}
+      >
+        Home
+      </Button>
+
+      {showImage && (
         <img
-    src={stkguy}
-    alt="stkguy"
-    style={{
-      position: 'absolute',
-      top: 0,
-      right: 700,
-      width: '100%',
-      height: '100%',
-      objectFit: 'contain', // Ensures the image fits without cropping
-      opacity: 0.3, // Set transparency to 50%
-      pointerEvents: 'none', // Prevents interaction issues
-    }}
-  />
+          src={stkguy}
+          alt="stkguy"
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: '20%',
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            opacity: 0.3,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
       <img
         src={stkLogo}
         alt="Logo"
@@ -193,7 +229,7 @@ const VotingPage: React.FC = () => {
           marginBottom: '20px',
           cursor: 'pointer',
         }}
-        onClick={() => navigate('/')} // Redirect on logo click
+        onClick={handleLogoClick} // Click handler
       />
       <Box sx={{ marginTop: 2, marginBottom: 4 }}>
         {walletAddress ? (
@@ -227,48 +263,48 @@ const VotingPage: React.FC = () => {
       </Box>
 
       <Box sx={{ marginBottom: 4 }}>
-  <Typography variant="body2" sx={{ color: '#ffffff', marginBottom: 1 }}>
-    Filter Topics:
-  </Typography>
-  <Button
-    variant={filter === 'now' ? 'contained' : 'outlined'}
-    onClick={() => setFilter('now')}
-    sx={{ marginRight: 1 }}
-  >
-    Now
-  </Button>
-  <Button
-    variant={filter === 'past' ? 'contained' : 'outlined'}
-    onClick={() => setFilter('past')}
-    sx={{ marginRight: 1 }}
-  >
-    Past
-  </Button>
-  <Button
-    variant={filter === 'incoming' ? 'contained' : 'outlined'}
-    onClick={() => setFilter('incoming')}
-  >
-    Incoming
-  </Button>
-</Box>
+        <Typography variant="body2" sx={{ color: '#ffffff', marginBottom: 1 }}>
+          Filter Topics:
+        </Typography>
+        <Button
+          variant={filter === 'now' ? 'contained' : 'outlined'}
+          onClick={() => setFilter('now')}
+          sx={{ marginRight: 1 }}
+        >
+          Now
+        </Button>
+        <Button
+          variant={filter === 'past' ? 'contained' : 'outlined'}
+          onClick={() => setFilter('past')}
+          sx={{ marginRight: 1 }}
+        >
+          Past
+        </Button>
+        <Button
+          variant={filter === 'incoming' ? 'contained' : 'outlined'}
+          onClick={() => setFilter('incoming')}
+        >
+          Incoming
+        </Button>
+      </Box>
 
       <Box sx={{ maxWidth: '800px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {topics.filter((topic) => {
-    const now = new Date();
-    const startTime = new Date(topic.start_time);
-    const endTime = new Date(topic.end_time);
-    if (filter === 'now') {
-      return now >= startTime && now <= endTime;
-    } else if (filter === 'past') {
-      return now > endTime;
-    } else if (filter === 'incoming') {
-      return now < startTime;
-    }
-    return true;
-  }).map((topic) => (
-          <Box key={topic.id} sx={{ width: '100%', marginBottom: 4 }}>
-            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#ffffff' }}>
-              {topic.title}
+          const now = new Date();
+          const startTime = new Date(topic.start_time);
+          const endTime = new Date(topic.end_time);
+          if (filter === 'now') {
+            return now >= startTime && now <= endTime;
+          } else if (filter === 'past') {
+            return now > endTime;
+          } else if (filter === 'incoming') {
+            return now < startTime;
+          }
+          return true;
+        }).map((topic) => (
+          <Box key={topic.id} sx={{ maxWidth: { xs: '90vw', sm: '600px' }, width: '100%' }}>
+            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#ffffff', fontSize: { xs: '1.4rem', sm: '2rem' } }}>
+              {topic.title} {hasVoted[topic.id] && '（您已投票）'}
             </Typography>
             <Typography variant="body1" gutterBottom sx={{ color: '#aaaaaa', fontSize: '16px', marginBottom: 2 }}>
               开始：<span style={{ fontWeight: 'bold' }}>{new Date(topic.start_time).toLocaleString()}</span> |
@@ -282,14 +318,16 @@ const VotingPage: React.FC = () => {
                     variant="outlined"
                     key={option.option_text}
                     sx={{
-                      marginBottom: 2,
+                      width: '100%',
+                      backgroundColor: 'rgba(43, 42, 42, 0.15)', // Lighter transparent effect
                       padding: 2,
-                      border: '2px solid #3f51b5',
-                      borderRadius: '8px',
-                      backgroundColor: 'white',
-                      boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+                      transition: 'background-color 0.3s ease-in-out',
+                      color: 'white', // White text
+                      backdropFilter: 'blur(8px)', // Glassmorphic effect
+                      marginBottom: 2, // Adds space between options
+                      border: '1px solid rgba(255, 255, 255, 0.3)', // Light white border
                       '&:hover': {
-                        boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
+                        backgroundColor: 'rgba(23, 22, 22, 0.45)', // Slightly darker on hover
                       },
                     }}
                   >
@@ -314,8 +352,9 @@ const VotingPage: React.FC = () => {
                       fullWidth
                       disabled={hasVoted[topic.id] || !walletAddress}
                       sx={{
-                        backgroundColor: '#3f51b5',
-                        color: 'white',
+                        backgroundColor: 'rgba(23, 22, 22, 0.25)',
+                        color: (theme) =>
+                          hasVoted[topic.id] || !walletAddress ? 'rgba(255, 255, 255, 0.6) !important' : 'white !important', // Light white when disabled, white otherwise
                         '&:hover': {
                           backgroundColor: '#303f9f',
                         },
