@@ -13,6 +13,7 @@ import mockBackend, { Topic } from './mockBackend';
 import stkLogo from './image/stklogo.png';
 import bg from './image/bground.jpg';
 import stkguy from './image/stkguy.png';
+import logoImg from './image/logo.png';
 
 const VotingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -124,9 +125,11 @@ const VotingPage: React.FC = () => {
   };
 
   const connectWallet = async () => {
+
     if (window.solana) {
       try {
         const response = await window.solana.connect();
+        debugger
         setWalletAddress(response.publicKey.toString());
       } catch (err) {
         console.error(err);
@@ -170,6 +173,7 @@ const VotingPage: React.FC = () => {
         alignItems: 'center',
       }}
     >
+
         <img
     src={stkguy}
     alt="stkguy"
@@ -184,14 +188,25 @@ const VotingPage: React.FC = () => {
       pointerEvents: 'none', // Prevents interaction issues
     }}
   />
+ {/*     <div style={{
+        position: 'absolute',
+        top:'0px',
+        left:'0px',
+        cursor: 'pointer',
+      }}>
+        <img src={logoImg} alt="" style={{ width: '200px' }} />
+      </div>*/}
       <img
-        src={stkLogo}
+        src={logoImg}
         alt="Logo"
         style={{
           width: '150px',
           height: 'auto',
           marginBottom: '20px',
           cursor: 'pointer',
+          borderRadius: '4px',
+          marginLeft: '10px',
+          marginTop: '10px',
         }}
         onClick={() => navigate('/')} // Redirect on logo click
       />
