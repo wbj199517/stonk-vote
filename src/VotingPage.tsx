@@ -17,6 +17,7 @@ import stkguy from './image/stkguy.png';
 const VotingPage: React.FC = () => {
   const navigate = useNavigate();
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [filter, setFilter] = useState<'now' | 'past' | 'incoming'>('now');
   const [votes, setVotes] = useState<{ [key: string]: number }>({});
   const [totalVotes, setTotalVotes] = useState(0);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -224,8 +225,47 @@ const VotingPage: React.FC = () => {
           </Button>
         )}
       </Box>
+
+      <Box sx={{ marginBottom: 4 }}>
+  <Typography variant="body2" sx={{ color: '#ffffff', marginBottom: 1 }}>
+    Filter Topics:
+  </Typography>
+  <Button
+    variant={filter === 'now' ? 'contained' : 'outlined'}
+    onClick={() => setFilter('now')}
+    sx={{ marginRight: 1 }}
+  >
+    Now
+  </Button>
+  <Button
+    variant={filter === 'past' ? 'contained' : 'outlined'}
+    onClick={() => setFilter('past')}
+    sx={{ marginRight: 1 }}
+  >
+    Past
+  </Button>
+  <Button
+    variant={filter === 'incoming' ? 'contained' : 'outlined'}
+    onClick={() => setFilter('incoming')}
+  >
+    Incoming
+  </Button>
+</Box>
+
       <Box sx={{ maxWidth: '800px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        {topics.map((topic) => (
+        {topics.filter((topic) => {
+    const now = new Date();
+    const startTime = new Date(topic.start_time);
+    const endTime = new Date(topic.end_time);
+    if (filter === 'now') {
+      return now >= startTime && now <= endTime;
+    } else if (filter === 'past') {
+      return now > endTime;
+    } else if (filter === 'incoming') {
+      return now < startTime;
+    }
+    return true;
+  }).map((topic) => (
           <Box key={topic.id} sx={{ width: '100%', marginBottom: 4 }}>
             <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#ffffff' }}>
               {topic.title}
