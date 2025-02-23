@@ -1,3 +1,16 @@
+import request from '../utils';
+import{
+  fetchTopicsUrl
+  getTopicDetailUrl
+  submitVoteUrl
+  getVotingRecordsUrl
+  GetWalletVotingRecord
+  ,
+  getTopicDetailUrl,
+  submitVoteUrl,
+  getVotingRecordsUrl,
+  GetWalletVotingRecord,
+} from '../url'
 export interface Option {
   id: number;
   option_text: string;
@@ -42,12 +55,14 @@ class MockBackend {
   ];
 
   public async fetchTopics(): Promise<{ code: number; message: string; data: Topic[] }> {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return {
-      code: 0,
-      message: 'Success',
-      data: this.initialData,
-    };
+
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
+    // return {
+    //   code: 0,
+    //   message: 'Success',
+    //   data: this.initialData,
+    // };
+    return request(fetchTopicsUrl,{method:'GET'})
   }
 
   public async fetchTopicDetails(id: number): Promise<{ code: number; message: string; data: Topic | null }> {
