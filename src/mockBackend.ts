@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 export interface Option {
   id: number;
   option_text: string;
@@ -27,6 +25,18 @@ class MockBackend {
         { id: 1, option_text: 'USDT', vote_count: 5 },
         { id: 2, option_text: 'SOL', vote_count: 4 },
         { id: 3, option_text: 'STONKS', vote_count: 8 },
+      ],
+    },
+    {
+      id: 2,
+      title: 'Another Vote',
+      start_time: '2025-02-21T14:00:00Z',
+      end_time: '2025-02-28T14:00:00Z',
+      created_at: '2025-02-20T14:00:00Z',
+      options: [
+        { id: 1, option_text: 'Option A', vote_count: 6 },
+        { id: 2, option_text: 'Option B', vote_count: 4 },
+        { id: 3, option_text: 'Option C', vote_count: 3 },
       ],
     },
   ];
@@ -90,7 +100,7 @@ class MockBackend {
         topic_id: topicId,
         option_id: 1,
         wallet_address: 'FU87r4fX8roQ9ezm3Zc1LA2Ktx1UL2on3W4nhkb97tN5',
-        vote_amount: '1',
+        vote_amount: '0',
         created_at: '2024-01-01T12:00:00Z',
         option_text: 'STONKS',
       },
@@ -106,8 +116,8 @@ class MockBackend {
   public async fetchWalletVoteRecord(topicId: number, walletAddress: string): Promise<{ code: number; message: string; data: { id: number; topic_id: number; option_id: number; wallet_address: string; vote_amount: string; created_at: string; option_text: string } | null }> {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     const record = {
-      id: 1,
-      topic_id: topicId,
+      id: 2,
+      topic_id: 2,
       option_id: 1,
       wallet_address: walletAddress,
       vote_amount: '1',
