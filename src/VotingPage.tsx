@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import mockBackend, { Topic } from './mockBackend';
 import stkLogo from './image/stklogo.png';
 import bg from './image/bground.jpg';
+import stkguy from './image/stkguy.png';
 
 const VotingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -168,6 +169,20 @@ const VotingPage: React.FC = () => {
         alignItems: 'center',
       }}
     >
+        <img
+    src={stkguy}
+    alt="stkguy"
+    style={{
+      position: 'absolute',
+      top: 0,
+      right: 700,
+      width: '100%',
+      height: '100%',
+      objectFit: 'contain', // Ensures the image fits without cropping
+      opacity: 0.3, // Set transparency to 50%
+      pointerEvents: 'none', // Prevents interaction issues
+    }}
+  />
       <img
         src={stkLogo}
         alt="Logo"

@@ -119,7 +119,7 @@ class MockBackend {
       id: 2,
       topic_id: 2,
       option_id: 1,
-      wallet_address: 'testabcd',
+      wallet_address: walletAddress,
       vote_amount: '1',
       created_at: '2024-01-01T12:00:00Z',
       option_text: 'STONKS',
