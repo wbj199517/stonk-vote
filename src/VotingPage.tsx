@@ -1,20 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Typography, Box, LinearProgress, Card, Divider, CircularProgress } from '@mui/material';
+import {
+  Button,
+  Typography,
+  Box,
+  LinearProgress,
+  Card,
+  Divider,
+  CircularProgress,
+} from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import mockBackend, { Topic } from './mockBackend';
+import stkLogo from './image/stklogo.png';
+import bg from './image/bground.jpg';
 
 const VotingPage: React.FC = () => {
+  const navigate = useNavigate();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [votes, setVotes] = useState<{ [key: string]: number }>({});
   const [totalVotes, setTotalVotes] = useState(0);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [hasVoted, setHasVoted] = useState<{ [key: number]: boolean }>({}); // Track votes per topic
+  const [hasVoted, setHasVoted] = useState<{ [key: number]: boolean }>({});
   const [loading, setLoading] = useState(true);
-
-const [optionColors, setOptionColors] = useState<{ [key: string]: string }>({
-  'USDT': '#4CAF50',
-  'SOL': '#FF9800',
-  'STONKS': '#2196F3',
-});
+  const [optionColors, setOptionColors] = useState<{ [key: string]: string }>({
+    USDT: '#4CAF50',
+    SOL: '#FF9800',
+    STONKS: '#2196F3',
+  });
 
   useEffect(() => {
     const loadTopics = async () => {
@@ -55,9 +66,8 @@ const [optionColors, setOptionColors] = useState<{ [key: string]: string }>({
       const updatedHasVoted: { [key: number]: boolean } = {};
       for (const topic of topics) {
         const voteRecordResponse = await mockBackend.fetchWalletVoteRecord(topic.id, walletAddress);
-        if (voteRecordResponse.code === 0 && voteRecordResponse.data?.vote_amount !== '0' && voteRecordResponse.data?.topic_id === topic.id ) {
+        if (voteRecordResponse.code === 0 && voteRecordResponse.data?.vote_amount !== '0' && voteRecordResponse.data?.topic_id === topic.id) {
           updatedHasVoted[topic.id] = true;
-          console.log(`Wallet ${walletAddress} has already voted for topic ID ${topic.id}`);
         } else {
           updatedHasVoted[topic.id] = false;
         }
@@ -65,18 +75,18 @@ const [optionColors, setOptionColors] = useState<{ [key: string]: string }>({
       setHasVoted(updatedHasVoted);
     }
   };
-  
+
   useEffect(() => {
-    checkIfWalletHasVoted(); // Check if wallet has voted whenever walletAddress changes or topics change
+    checkIfWalletHasVoted();
   }, [walletAddress, topics]);
 
   useEffect(() => {
-    const uniqueOptions = new Set(topics.flatMap(topic => topic.options.map(opt => opt.option_text)));
+    const uniqueOptions = new Set(topics.flatMap((topic) => topic.options.map((opt) => opt.option_text)));
     setOptionColors((prevColors) => {
       const newColors = { ...prevColors };
-      uniqueOptions.forEach(option => {
+      uniqueOptions.forEach((option) => {
         if (!newColors[option]) {
-          newColors[option] = `#${Math.floor(Math.random()*16777215).toString(16)}`; // Assign random colors
+          newColors[option] = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
         }
       });
       return newColors;
@@ -94,7 +104,7 @@ const [optionColors, setOptionColors] = useState<{ [key: string]: string }>({
       return;
     }
 
-    const selectedOption = topics.flatMap(topic => topic.options).find(option => option.option_text === optionKey);
+    const selectedOption = topics.flatMap((topic) => topic.options).find((option) => option.option_text === optionKey);
     if (!selectedOption) return;
 
     setVotes((prevVotes) => ({
@@ -102,7 +112,7 @@ const [optionColors, setOptionColors] = useState<{ [key: string]: string }>({
       [optionKey]: prevVotes[optionKey] + 1,
     }));
     setTotalVotes((prevTotal) => prevTotal + 1);
-    setHasVoted((prev) => ({ ...prev, [topicId]: true })); // Update voted state for this topic
+    setHasVoted((prev) => ({ ...prev, [topicId]: true }));
 
     const nonce = Math.random().toString(36).substring(2, 15);
     const response = await mockBackend.sendVoteData(topicId, selectedOption.id, walletAddress, nonce);
@@ -120,21 +130,21 @@ const [optionColors, setOptionColors] = useState<{ [key: string]: string }>({
         console.error(err);
       }
     } else {
-      alert('Phantom Wallet not found. Please install it.');
+      alert('Wallet not found. Please install it.');
     }
   };
 
   const disconnectWallet = () => {
     setWalletAddress(null);
-    setHasVoted({}); // Reset voted state for all topics
+    setHasVoted({});
     alert('Wallet disconnected. You can connect again.');
   };
 
   if (loading) {
     return (
-      <Box sx={{ textAlign: 'center', padding: 4, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+      <Box sx={{ textAlign: 'center', padding: 4, backgroundColor: '#121212', minHeight: '100vh' }}>
         <CircularProgress size={60} />
-        <Typography variant="h6" sx={{ marginTop: 2 }}>
+        <Typography variant="h6" sx={{ marginTop: 2, color: 'white' }}>
           Loading topic data...
         </Typography>
       </Box>
@@ -144,94 +154,127 @@ const [optionColors, setOptionColors] = useState<{ [key: string]: string }>({
   if (topics.length === 0) return null;
 
   return (
-    <Box sx={{ textAlign: 'center', padding: 4, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
-      {topics.map(topic => (
-        <div key={topic.id}>
-          <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#3f51b5' }}>
-            {topic.title}
-          </Typography>
-          <Typography variant="body1" gutterBottom sx={{ color: '#555', fontSize: '16px', marginBottom: 2 }}>
-            开始：<span style={{ fontWeight: 'bold' }}>{new Date(topic.start_time).toLocaleString()}</span> | 
-            结束：<span style={{ fontWeight: 'bold' }}>{new Date(topic.end_time).toLocaleString()}</span>
-          </Typography>
-          <Box sx={{ maxWidth: '600px', margin: 'auto', paddingTop: 4 }}>
-            {topic.options.map((option) => {
-              const percentage = totalVotes ? (votes[option.option_text] / totalVotes) * 100 : 0;
-              return (
-                <Card 
-                  variant="outlined" 
-                  key={option.option_text} 
-                  sx={{ 
-                    marginBottom: 2, 
-                    padding: 2, 
-                    border: '2px solid #3f51b5',
-                    borderRadius: '8px',
-                    backgroundColor: 'white',
-                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
-                    '&:hover': {
-                      boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
-                    },
-                  }}
-                >
-                  <Typography variant="h6" gutterBottom>
-                    {option.option_text} {percentage.toFixed(0)}% (Total: {votes[option.option_text]})
-                  </Typography>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={percentage} 
-                    sx={{ 
-                      marginBottom: 2, 
-                      height: 10, 
-                      backgroundColor: '#e0e0e0', 
-                      '& .MuiLinearProgress-bar': {
-                        backgroundColor: optionColors[option.option_text as keyof typeof optionColors] || '#3f51b5',
-                      },
-                    }} 
-                  />
-                  <Button 
-                    variant="contained" 
-                    onClick={() => handleVote(option.option_text, topic.id)} 
-                    fullWidth 
-                    disabled={hasVoted[topic.id] || !walletAddress} 
-                    sx={{
-                      backgroundColor: '#3f51b5',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: '#303f9f',
-                      },
-                    }}
-                  >
-                    Vote
-                  </Button>
-                </Card>
-              );
-            })}
-          </Box>
-          <Divider sx={{ marginY: 4 }} />
-        </div>
-      ))}
-      <Box sx={{ position: 'absolute', top: 16, right: 16, textAlign: 'right' }}>
+    <Box
+      sx={{
+        textAlign: 'center',
+        padding: 4,
+        backgroundColor: '#121212',
+        minHeight: '100vh',
+        backgroundImage: `url(${bg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <img
+        src={stkLogo}
+        alt="Logo"
+        style={{
+          width: '150px',
+          height: 'auto',
+          marginBottom: '20px',
+          cursor: 'pointer',
+        }}
+        onClick={() => navigate('/')} // Redirect on logo click
+      />
+      <Box sx={{ marginTop: 2, marginBottom: 4 }}>
         {walletAddress ? (
           <>
-            <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#333', marginBottom: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#ffffff', marginBottom: 1 }}>
               Connected: {walletAddress}
             </Typography>
-            <Button 
-              variant="outlined" 
-              color="error" 
+            <Button
+              variant="outlined"
+              color="error"
               onClick={disconnectWallet}
             >
               Disconnect Wallet
             </Button>
           </>
         ) : (
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={connectWallet}
+            sx={{
+              backgroundColor: '#3f51b5',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#303f9f',
+              },
+            }}
           >
             连接钱包
           </Button>
         )}
+      </Box>
+      <Box sx={{ maxWidth: '800px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {topics.map((topic) => (
+          <Box key={topic.id} sx={{ width: '100%', marginBottom: 4 }}>
+            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#ffffff' }}>
+              {topic.title}
+            </Typography>
+            <Typography variant="body1" gutterBottom sx={{ color: '#aaaaaa', fontSize: '16px', marginBottom: 2 }}>
+              开始：<span style={{ fontWeight: 'bold' }}>{new Date(topic.start_time).toLocaleString()}</span> |
+              结束：<span style={{ fontWeight: 'bold' }}>{new Date(topic.end_time).toLocaleString()}</span>
+            </Typography>
+            <Box sx={{ maxWidth: '600px', margin: 'auto', paddingTop: 2 }}>
+              {topic.options.map((option) => {
+                const percentage = totalVotes ? (votes[option.option_text] / totalVotes) * 100 : 0;
+                return (
+                  <Card
+                    variant="outlined"
+                    key={option.option_text}
+                    sx={{
+                      marginBottom: 2,
+                      padding: 2,
+                      border: '2px solid #3f51b5',
+                      borderRadius: '8px',
+                      backgroundColor: 'white',
+                      boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+                      '&:hover': {
+                        boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
+                      },
+                    }}
+                  >
+                    <Typography variant="h6" gutterBottom>
+                      {option.option_text} {percentage.toFixed(0)}% (Total: {votes[option.option_text]})
+                    </Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={percentage}
+                      sx={{
+                        marginBottom: 2,
+                        height: 10,
+                        backgroundColor: '#e0e0e0',
+                        '& .MuiLinearProgress-bar': {
+                          backgroundColor: optionColors[option.option_text as keyof typeof optionColors] || '#3f51b5',
+                        },
+                      }}
+                    />
+                    <Button
+                      variant="contained"
+                      onClick={() => handleVote(option.option_text, topic.id)}
+                      fullWidth
+                      disabled={hasVoted[topic.id] || !walletAddress}
+                      sx={{
+                        backgroundColor: '#3f51b5',
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: '#303f9f',
+                        },
+                      }}
+                    >
+                      Vote
+                    </Button>
+                  </Card>
+                );
+              })}
+            </Box>
+            <Divider sx={{ marginY: 4 }} />
+          </Box>
+        ))}
       </Box>
     </Box>
   );

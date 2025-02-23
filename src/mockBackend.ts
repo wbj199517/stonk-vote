@@ -117,10 +117,10 @@ class MockBackend {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     const record = {
       id: 2,
-      topic_id: topicId,
+      topic_id: 2,
       option_id: 1,
       wallet_address: 'testabcd',
-      vote_amount: '0',
+      vote_amount: '1',
       created_at: '2024-01-01T12:00:00Z',
       option_text: 'STONKS',
     };
