@@ -20,6 +20,8 @@ const VotingPage: React.FC = () => {
   const [filter, setFilter] = useState<'now' | 'past' | 'incoming'>('now');
   const [votes, setVotes] = useState<{ [key: string]: number }>({});
   const [totalVotes, setTotalVotes] = useState(0);
+  const [clickCount, setClickCount] = useState(0);
+  const [showImage, setShowImage] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState<{ [key: number]: boolean }>({});
   const [loading, setLoading] = useState(true);
@@ -28,9 +30,6 @@ const VotingPage: React.FC = () => {
     SOL: '#FF9800',
     STONKS: '#2196F3',
   });
-
-  const [clickCount, setClickCount] = useState(0);
-  const [showImage, setShowImage] = useState(false);
 
   useEffect(() => {
     const loadTopics = async () => {
@@ -65,10 +64,10 @@ const VotingPage: React.FC = () => {
 
     loadTopics();
   }, []);
-
+  
   const handleLogoClick = () => {
-    if (clickCount + 1 === 20) {
-      setShowImage(true); // Show 彩蛋 after 20 clicks
+    if (clickCount + 1 === 10) {
+      setShowImage(true); // Show 彩蛋 after 10 clicks
     }
     setClickCount(prev => prev + 1);
   };
@@ -169,40 +168,19 @@ const VotingPage: React.FC = () => {
     <Box
       sx={{
         textAlign: 'center',
-        padding: 2,
+        padding: 4,
         backgroundColor: '#121212',
         minHeight: '100vh',
+        backgroundImage: `url(${bg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        backgroundImage: `url(${bg})`,
-        backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
-        width: '100%',
-        maxWidth: '100vw',
       }}
     >
-      <Button
-        variant="text" 
-        onClick={() => navigate('/')}
-        sx={{
-          position: 'absolute',
-          top: '5%',
-          left: '5%',
-          color: 'white',
-          fontSize: '1.2rem',
-          fontWeight: 'bold', 
-          '&:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          },
-        }}
-      >
-        Home
-      </Button>
-
       {showImage && (
         <img
           src={stkguy}
@@ -220,6 +198,23 @@ const VotingPage: React.FC = () => {
         />
       )}
 
+      <Button
+        variant="text" 
+        onClick={() => navigate('/')}
+        sx={{
+          position: 'absolute',
+          top: { xs: '3%', sm: '5%' }, // Responsive positioning
+          left: { xs: '3%', sm: '5%' },
+          color: 'white',
+          fontSize: { xs: '1rem', sm: '1.2rem' }, // Responsive font size
+          fontWeight: 'bold', 
+          '&:hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          },
+        }}
+      >
+        Home
+      </Button>
       <img
         src={stkLogo}
         alt="Logo"
@@ -229,7 +224,7 @@ const VotingPage: React.FC = () => {
           marginBottom: '20px',
           cursor: 'pointer',
         }}
-        onClick={handleLogoClick} // Click handler
+        onClick={handleLogoClick} 
       />
       <Box sx={{ marginTop: 2, marginBottom: 4 }}>
         {walletAddress ? (
@@ -242,7 +237,7 @@ const VotingPage: React.FC = () => {
               color="error"
               onClick={disconnectWallet}
             >
-              Disconnect Wallet
+              断开钱包
             </Button>
           </>
         ) : (
@@ -302,8 +297,8 @@ const VotingPage: React.FC = () => {
           }
           return true;
         }).map((topic) => (
-          <Box key={topic.id} sx={{ maxWidth: { xs: '90vw', sm: '600px' }, width: '100%' }}>
-            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#ffffff', fontSize: { xs: '1.4rem', sm: '2rem' } }}>
+          <Box key={topic.id} sx={{ width: '100%', marginBottom: 4 }}>
+            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#ffffff' }}>
               {topic.title} {hasVoted[topic.id] && '（您已投票）'}
             </Typography>
             <Typography variant="body1" gutterBottom sx={{ color: '#aaaaaa', fontSize: '16px', marginBottom: 2 }}>
@@ -318,21 +313,21 @@ const VotingPage: React.FC = () => {
                     variant="outlined"
                     key={option.option_text}
                     sx={{
-                      width: '100%',
-                      backgroundColor: 'rgba(43, 42, 42, 0.15)', // Lighter transparent effect
-                      padding: 2,
+                      width: '90%',
+                      backgroundColor: 'rgba(43, 42, 42, 0.15)',
+                      padding: '2vh',
                       transition: 'background-color 0.3s ease-in-out',
-                      color: 'white', // White text
-                      backdropFilter: 'blur(8px)', // Glassmorphic effect
-                      marginBottom: 2, // Adds space between options
-                      border: '1px solid rgba(255, 255, 255, 0.3)', // Light white border
+                      color: 'white',
+                      backdropFilter: 'blur(8px)', 
+                      marginBottom: 2, 
+                      border: '1px solid rgba(255, 255, 255, 0.3)', 
                       '&:hover': {
-                        backgroundColor: 'rgba(23, 22, 22, 0.45)', // Slightly darker on hover
+                        backgroundColor: 'rgba(23, 22, 22, 0.45)', 
                       },
                     }}
                   >
                     <Typography variant="h6" gutterBottom>
-                      {option.option_text} {percentage.toFixed(0)}% (Total: {votes[option.option_text]})
+                      <strong>{option.option_text} {percentage.toFixed(0)}% (Total: {votes[option.option_text]})</strong>
                     </Typography>
                     <LinearProgress
                       variant="determinate"
@@ -352,11 +347,12 @@ const VotingPage: React.FC = () => {
                       fullWidth
                       disabled={hasVoted[topic.id] || !walletAddress}
                       sx={{
+                        fontWeight:"bold",
                         backgroundColor: 'rgba(23, 22, 22, 0.25)',
                         color: (theme) =>
-                          hasVoted[topic.id] || !walletAddress ? 'rgba(255, 255, 255, 0.6) !important' : 'white !important', // Light white when disabled, white otherwise
+                          hasVoted[topic.id] || !walletAddress ? 'rgba(255, 255, 255, 0.6) !important' : 'white !important', 
                         '&:hover': {
-                          backgroundColor: '#303f9f',
+                          backgroundColor: '#303f9f !important',
                         },
                       }}
                     >
@@ -369,6 +365,22 @@ const VotingPage: React.FC = () => {
             <Divider sx={{ marginY: 4 }} />
           </Box>
         ))}
+      </Box>
+            {/* Footer */}
+            <Box
+        sx={{
+          width: '100%',
+          backgroundColor: 'black',
+          color: 'white',
+          padding: '16px 0',
+          position: 'relative',
+          bottom: 0,
+          textAlign: 'center',
+        }}
+      >
+        <Typography variant="body2">
+          Powered by STONKS Community
+        </Typography>
       </Box>
     </Box>
   );

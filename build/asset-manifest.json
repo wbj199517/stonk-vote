@@ -1,0 +1,18 @@
+{
+  "files": {
+    "main.css": "/static/css/main.615803ef.css",
+    "main.js": "/static/js/main.e6150971.js",
+    "static/js/453.9b3d064a.chunk.js": "/static/js/453.9b3d064a.chunk.js",
+    "static/media/stkguy.png": "/static/media/stkguy.b198221333ca6dea023b.png",
+    "static/media/stklogo.png": "/static/media/stklogo.c61770d340cbca020ad1.png",
+    "static/media/bground1.jpeg": "/static/media/bground1.07932a785fd151a11ea3.jpeg",
+    "index.html": "/index.html",
+    "main.615803ef.css.map": "/static/css/main.615803ef.css.map",
+    "main.e6150971.js.map": "/static/js/main.e6150971.js.map",
+    "453.9b3d064a.chunk.js.map": "/static/js/453.9b3d064a.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.615803ef.css",
+    "static/js/main.e6150971.js"
+  ]
+}
