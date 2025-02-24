@@ -32,13 +32,16 @@ const VotingPage: React.FC = () => {
 
   useEffect(() => {
     const loadTopics = async () => {
+
       setLoading(true);
-      const response = await mockBackend.fetchTopics();
+      console.log('mockBackend.fetchTopicsReq()',mockBackend.fetchTopicsReq)
+      const response = await mockBackend.fetchTopicsReq();
+      debugger
       if (response.code === 0 && response.data.length > 0) {
         const fetchedTopics = response.data;
         setTopics(fetchedTopics);
         for (const fetchedTopic of fetchedTopics) {
-          const topicDetailsResponse = await mockBackend.fetchTopicDetails(fetchedTopic.id);
+          const topicDetailsResponse = await mockBackend.fetchTopicDetailsReq(fetchedTopic.id);
           if (topicDetailsResponse.code === 0 && topicDetailsResponse.data) {
             const topicDetails = topicDetailsResponse.data;
             setVotes((prevVotes) => ({
@@ -68,6 +71,7 @@ const VotingPage: React.FC = () => {
     if (walletAddress) {
       const updatedHasVoted: { [key: number]: boolean } = {};
       for (const topic of topics) {
+        debugger
         const voteRecordResponse = await mockBackend.fetchWalletVoteRecord(topic.id, walletAddress);
         if (voteRecordResponse.code === 0 && voteRecordResponse.data?.vote_amount !== '0' && voteRecordResponse.data?.topic_id === topic.id) {
           updatedHasVoted[topic.id] = true;
@@ -118,7 +122,7 @@ const VotingPage: React.FC = () => {
     setHasVoted((prev) => ({ ...prev, [topicId]: true }));
 
     const nonce = Math.random().toString(36).substring(2, 15);
-    const response = await mockBackend.sendVoteData(topicId, selectedOption.id, walletAddress, nonce);
+    const response = await mockBackend.submitVoteReq(topicId, selectedOption.id, walletAddress, nonce);
     if (response.code !== 0) {
       console.error(response.message);
     }
@@ -129,7 +133,7 @@ const VotingPage: React.FC = () => {
     if (window.solana) {
       try {
         const response = await window.solana.connect();
-        debugger
+
         setWalletAddress(response.publicKey.toString());
       } catch (err) {
         console.error(err);

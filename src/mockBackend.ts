@@ -1,16 +1,11 @@
-import request from '../utils';
+import request from './request';
 import{
-  fetchTopicsUrl
-  getTopicDetailUrl
-  submitVoteUrl
-  getVotingRecordsUrl
-  GetWalletVotingRecord
-  ,
+  fetchTopicsUrl,
   getTopicDetailUrl,
   submitVoteUrl,
   getVotingRecordsUrl,
-  GetWalletVotingRecord,
-} from '../url'
+  getWalletVotingRecordUrl,
+} from './url'
 export interface Option {
   id: number;
   option_text: string;
@@ -54,37 +49,31 @@ class MockBackend {
     },
   ];
 
-  public async fetchTopics(): Promise<{ code: number; message: string; data: Topic[] }> {
-
-    // await new Promise((resolve) => setTimeout(resolve, 1000));
-    // return {
-    //   code: 0,
-    //   message: 'Success',
-    //   data: this.initialData,
-    // };
+  public async fetchTopicsReq(): Promise<{ code: number; message: string; data: Topic[] }> {
     return request(fetchTopicsUrl,{method:'GET'})
   }
 
-  public async fetchTopicDetails(id: number): Promise<{ code: number; message: string; data: Topic | null }> {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const topic = this.initialData.find((topic) => topic.id === id);
-    
-    if (topic) {
-      return {
-        code: 0,
-        message: 'Success',
-        data: topic,
-      };
-    } else {
-      return {
-        code: 1007, // Topic not found
-        message: 'Topic not found',
-        data: null,
-      };
-    }
+  public async fetchTopicDetailsReq(id: number): Promise<{ code: number; message: string; data: Topic | null }> {
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
+    // const topic = this.initialData.find((topic) => topic.id === id);
+    return request(getTopicDetailUrl(id),{method:'GET'})
+
+    // if (topic) {
+    //   return {
+    //     code: 0,
+    //     message: 'Success',
+    //     data: topic,
+    //   };
+    // } else {
+    //   return {
+    //     code: 1007, // Topic not found
+    //     message: 'Topic not found',
+    //     data: null,
+    //   };
+    // }
   }
 
-  public async sendVoteData(topicId: number, optionId: number, walletAddress: string, nonce: string): Promise<{ code: number; message: string; data: { voteAmount: string } }> {
+  public async submitVoteReq(topicId: number, optionId: number, walletAddress: string, nonce: string): Promise<{ code: number; message: string; data: { voteAmount: string } }> {
     const messageContent = {
       topicId,
       optionId,
@@ -96,8 +85,8 @@ class MockBackend {
     console.log('Sending vote data:', JSON.stringify(messageContent, null, 2)); // Pretty print JSON
 
     // Simulate a successful vote submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
+    //await new Promise((resolve) => setTimeout(resolve, 1000));
+    return request(submitVoteUrl,{method:'POST',data:messageContent})
     return {
       code: 0,
       message: 'Success',
@@ -107,29 +96,32 @@ class MockBackend {
     };
   }
 
-  public async fetchVoteRecords(topicId: number): Promise<{ code: number; message: string; data: Array<{ id: number; topic_id: number; option_id: number; wallet_address: string; vote_amount: string; created_at: string; option_text: string }> }> {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const records = [
-      {
-        id: 1,
-        topic_id: topicId,
-        option_id: 1,
-        wallet_address: 'FU87r4fX8roQ9ezm3Zc1LA2Ktx1UL2on3W4nhkb97tN5',
-        vote_amount: '0',
-        created_at: '2024-01-01T12:00:00Z',
-        option_text: 'STONKS',
-      },
-    ];
-
-    return {
-      code: 0,
-      message: 'Success',
-      data: records,
-    };
+  public async getVotingRecordsReq(topicId: number): Promise<{ code: number; message: string; data: Array<{ id: number; topic_id: number; option_id: number; wallet_address: string; vote_amount: string; created_at: string; option_text: string }> }> {
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
+    // return request(getVotingRecordsUrl(topicId),{method:'GET'})
+    return request(getWalletVotingRecordUrl(topicId),{method:'GET'})
+    // const records = [
+    //   {
+    //     id: 1,
+    //     topic_id: topicId,
+    //     option_id: 1,
+    //     wallet_address: 'FU87r4fX8roQ9ezm3Zc1LA2Ktx1UL2on3W4nhkb97tN5',
+    //     vote_amount: '0',
+    //     created_at: '2024-01-01T12:00:00Z',
+    //     option_text: 'STONKS',
+    //   },
+    // ];
+    //
+    // return {
+    //   code: 0,
+    //   message: 'Success',
+    //   data: records,
+    // };
   }
 
   public async fetchWalletVoteRecord(topicId: number, walletAddress: string): Promise<{ code: number; message: string; data: { id: number; topic_id: number; option_id: number; wallet_address: string; vote_amount: string; created_at: string; option_text: string } | null }> {
     await new Promise((resolve) => setTimeout(resolve, 1000));
+    return request(getVotingRecordsUrl(topicId),{method:'GET'});
     const record = {
       id: 2,
       topic_id: 2,
