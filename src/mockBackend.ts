@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 export interface Option {
   id: number;
   option_text: string;
@@ -42,16 +44,24 @@ class MockBackend {
   ];
 
   public async fetchTopics(): Promise<{ code: number; message: string; data: Topic[] }> {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return {
       code: 0,
       message: 'Success',
       data: this.initialData,
     };
   }
+  //real api call example
+//   try {
+//     const response = await axios.post('http://localhost:9000/api/topics')
+//     return response.data;
+// } catch (error: any) {
+//     console.error('Error sending vote:', error.response?.data || error.message);
+//     return { code: -1, message: 'Failed to fetch topic' };
+// }
 
   public async fetchTopicDetails(id: number): Promise<{ code: number; message: string; data: Topic | null }> {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     const topic = this.initialData.find((topic) => topic.id === id);
     
     if (topic) {
@@ -69,19 +79,20 @@ class MockBackend {
     }
   }
 
-  public async sendVoteData(topicId: number, optionId: number, walletAddress: string, nonce: string): Promise<{ code: number; message: string; data: { voteAmount: string } }> {
+  public async sendVoteData(topicId: number, optionId: number, walletAddress: string, nonce: string, signature: string): Promise<{ code: number; message: string; data: { voteAmount: string } }> {
     const messageContent = {
       topicId,
       optionId,
       walletAddress,
       nonce,
+      signature,
       timestamp: new Date().toISOString(),
     };
 
     console.log('Sending vote data:', JSON.stringify(messageContent, null, 2)); // Pretty print JSON
 
     // Simulate a successful vote submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     return {
       code: 0,
@@ -93,7 +104,7 @@ class MockBackend {
   }
 
   public async fetchVoteRecords(topicId: number): Promise<{ code: number; message: string; data: Array<{ id: number; topic_id: number; option_id: number; wallet_address: string; vote_amount: string; created_at: string; option_text: string }> }> {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     const records = [
       {
         id: 1,
