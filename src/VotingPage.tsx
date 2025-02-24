@@ -149,6 +149,8 @@ const VotingPage: React.FC = () => {
     }
   };
   // Connect to wallet
+  let signClient: SignClient | null = null; // Store WalletConnect instance globally
+  let walletConnectSessionTopic: string | null = null; // Store WalletConnect session topic globally
   const connectWalletNew = async (type: string) => {
     try {
       let walletAddress: "" | string = "";
@@ -192,14 +194,16 @@ const VotingPage: React.FC = () => {
         case "trustwallet":
           if (!window.trustwallet?.isTrust) {
             window.open("https://trustwallet.com/", "_blank");
-            throw new Error("请安装 Trust Wallet");
+            alert("请安装 Trust Wallet");
+            break;
           }
-          const trustResp = await window.trustwallet.solana.connect();
-          walletAddress = trustResp.publicKey.toString();
+
+          const trustResp = await window.trustwallet?.solana.connect();
+          walletAddress = trustResp?.publicKey.toString() || "";
           break;
 
         case "walletconnect":
-          const signClient = await SignClient.init({
+          signClient = await SignClient.init({
             projectId: "471f8b666303999a24c8ca965b2384ee",
           });
 
@@ -223,7 +227,7 @@ const VotingPage: React.FC = () => {
 
           const session = await approval();
           walletAddress = session.namespaces.eip155.accounts[0].split(":")[2]; // Extract wallet address
-
+          walletConnectSessionTopic = session.topic;
           console.log("WalletConnect session:", session);
           QRCodeModal.close();
           break;
@@ -270,7 +274,6 @@ const VotingPage: React.FC = () => {
         }
       }
       setHasVoted(updatedHasVoted);
-      console.log("voted?", hasVoted);
     }
   };
 
@@ -349,6 +352,7 @@ const VotingPage: React.FC = () => {
       alert("An error occurred while signing the message. Please try again.");
       return;
     }
+    setHasVoted((prev) => ({ ...prev, [topicId]: true }));
 
     // If the signing was successful, send the vote data
     const response = await mockBackend.sendVoteData(
@@ -393,6 +397,45 @@ const VotingPage: React.FC = () => {
           "utf8"
         );
         signature = bs58.encode(new TextEncoder().encode(signedMessage));
+      } else if (SelectedWallet === "walletconnect") {
+        if (!signClient) {
+          signClient = await SignClient.init({
+            projectId: "471f8b666303999a24c8ca965b2384ee",
+          });
+        }
+        const { uri, approval } = await signClient.connect({
+          requiredNamespaces: {
+            eip155: {
+              methods: [
+                "eth_signTransaction",
+                "personal_sign",
+                "eth_sendTransaction",
+              ],
+              chains: ["eip155:1"], // Ethereum mainnet
+              events: ["chainChanged", "accountsChanged"],
+            },
+          },
+        });
+
+        if (uri) {
+          QRCodeModal.open(uri, () => console.log("QR Code Modal Closed"));
+        }
+
+        const session = await approval();
+
+        const address = walletAddress;
+
+        signature = await signClient.request({
+          chainId: "eip155:1",
+          request: {
+            method: "personal_sign",
+            params: [message, address],
+          },
+          topic: session.topic,
+        });
+
+        console.log("WalletConnect Signature:", signature);
+        QRCodeModal.close();
       } else {
         throw new Error("未找到支持的钱包");
       }
@@ -440,7 +483,7 @@ const VotingPage: React.FC = () => {
           alt="stkguy"
           style={{
             position: "absolute",
-            top: 0,
+            top: "30vh",
             right: "20%",
             width: "100%",
             height: "100%",
@@ -514,7 +557,7 @@ const VotingPage: React.FC = () => {
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {Object.entries(WALLET_INFO)
-                .filter(([key]) => availableWallets[key]) // Only include available wallets
+                // .filter(([key]) => availableWallets[key]) // Only include available wallets
                 .map(([key, { name, icon, downloadUrl }]) => (
                   <Button
                     key={key}

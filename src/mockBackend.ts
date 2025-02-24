@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 export interface Option {
   id: number;
@@ -19,67 +19,79 @@ class MockBackend {
   private initialData: Topic[] = [
     {
       id: 1,
-      title: '社区分红代币',
-      start_time: '2025-02-21T14:00:00Z',
-      end_time: '2025-02-28T14:00:00Z',
-      created_at: '2025-02-20T14:00:00Z',
+      title: "社区分红代币",
+      start_time: "2025-02-21T14:00:00Z",
+      end_time: "2025-02-28T14:00:00Z",
+      created_at: "2025-02-20T14:00:00Z",
       options: [
-        { id: 1, option_text: 'USDT', vote_count: 5 },
-        { id: 2, option_text: 'SOL', vote_count: 4 },
-        { id: 3, option_text: 'STONKS', vote_count: 8 },
+        { id: 1, option_text: "USDT", vote_count: 5 },
+        { id: 2, option_text: "SOL", vote_count: 4 },
+        { id: 3, option_text: "STONKS", vote_count: 8 },
       ],
     },
     {
       id: 2,
-      title: 'Another Vote',
-      start_time: '2025-02-21T14:00:00Z',
-      end_time: '2025-02-28T14:00:00Z',
-      created_at: '2025-02-20T14:00:00Z',
+      title: "Another Vote",
+      start_time: "2025-02-21T14:00:00Z",
+      end_time: "2025-02-28T14:00:00Z",
+      created_at: "2025-02-20T14:00:00Z",
       options: [
-        { id: 1, option_text: 'Option A', vote_count: 6 },
-        { id: 2, option_text: 'Option B', vote_count: 4 },
-        { id: 3, option_text: 'Option C', vote_count: 3 },
+        { id: 1, option_text: "Option A", vote_count: 6 },
+        { id: 2, option_text: "Option B", vote_count: 4 },
+        { id: 3, option_text: "Option C", vote_count: 3 },
       ],
     },
   ];
 
-  public async fetchTopics(): Promise<{ code: number; message: string; data: Topic[] }> {
+  public async fetchTopics(): Promise<{
+    code: number;
+    message: string;
+    data: Topic[];
+  }> {
     await new Promise((resolve) => setTimeout(resolve, 500));
     return {
       code: 0,
-      message: 'Success',
+      message: "Success",
       data: this.initialData,
     };
   }
   //real api call example
-//   try {
-//     const response = await axios.post('http://localhost:9000/api/topics')
-//     return response.data;
-// } catch (error: any) {
-//     console.error('Error sending vote:', error.response?.data || error.message);
-//     return { code: -1, message: 'Failed to fetch topic' };
-// }
+  //   try {
+  //     const response = await axios.post('http://localhost:9000/api/topics')
+  //     return response.data;
+  // } catch (error: any) {
+  //     console.error('Error sending vote:', error.response?.data || error.message);
+  //     return { code: -1, message: 'Failed to fetch topic' };
+  // }
 
-  public async fetchTopicDetails(id: number): Promise<{ code: number; message: string; data: Topic | null }> {
+  public async fetchTopicDetails(
+    id: number
+  ): Promise<{ code: number; message: string; data: Topic | null }> {
     await new Promise((resolve) => setTimeout(resolve, 500));
     const topic = this.initialData.find((topic) => topic.id === id);
-    
+
     if (topic) {
       return {
         code: 0,
-        message: 'Success',
+        message: "Success",
         data: topic,
       };
     } else {
       return {
         code: 1007, // Topic not found
-        message: 'Topic not found',
+        message: "Topic not found",
         data: null,
       };
     }
   }
 
-  public async sendVoteData(topicId: number, optionId: number, walletAddress: string, nonce: string, signature: string): Promise<{ code: number; message: string; data: { voteAmount: string } }> {
+  public async sendVoteData(
+    topicId: number,
+    optionId: number,
+    walletAddress: string,
+    nonce: string,
+    signature: string
+  ): Promise<{ code: number; message: string; data: { voteAmount: string } }> {
     const messageContent = {
       topicId,
       optionId,
@@ -89,57 +101,97 @@ class MockBackend {
       timestamp: new Date().toISOString(),
     };
 
-    console.log('Sending vote data:', JSON.stringify(messageContent, null, 2)); // Pretty print JSON
+    console.log("Sending vote data:", JSON.stringify(messageContent, null, 2)); // Pretty print JSON
 
     // Simulate a successful vote submission
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     return {
       code: 0,
-      message: 'Success',
+      message: "Success",
       data: {
-        voteAmount: '1', // Mock vote amount
+        voteAmount: "1", // Mock vote amount
       },
     };
   }
 
-  public async fetchVoteRecords(topicId: number): Promise<{ code: number; message: string; data: Array<{ id: number; topic_id: number; option_id: number; wallet_address: string; vote_amount: string; created_at: string; option_text: string }> }> {
+  public async fetchVoteRecords(
+    topicId: number
+  ): Promise<{
+    code: number;
+    message: string;
+    data: Array<{
+      id: number;
+      topic_id: number;
+      option_id: number;
+      wallet_address: string;
+      vote_amount: string;
+      created_at: string;
+      option_text: string;
+    }>;
+  }> {
     await new Promise((resolve) => setTimeout(resolve, 500));
     const records = [
       {
         id: 1,
         topic_id: topicId,
         option_id: 1,
-        wallet_address: 'FU87r4fX8roQ9ezm3Zc1LA2Ktx1UL2on3W4nhkb97tN5',
-        vote_amount: '0',
-        created_at: '2024-01-01T12:00:00Z',
-        option_text: 'STONKS',
+        wallet_address: "FU87r4fX8roQ9ezm3Zc1LA2Ktx1UL2on3W4nhkb97tN5",
+        vote_amount: "0",
+        created_at: "2024-01-01T12:00:00Z",
+        option_text: "STONKS",
       },
     ];
 
     return {
       code: 0,
-      message: 'Success',
+      message: "Success",
       data: records,
     };
   }
 
-  public async fetchWalletVoteRecord(topicId: number, walletAddress: string): Promise<{ code: number; message: string; data: { id: number; topic_id: number; option_id: number; wallet_address: string; vote_amount: string; created_at: string; option_text: string } | null }> {
+  public async fetchWalletVoteRecord(
+    topicId: number,
+    walletAddress: string
+  ): Promise<{
+    code: number;
+    message: string;
+    data: {
+      id: number;
+      topic_id: number;
+      option_id: number;
+      wallet_address: string;
+      vote_amount: string;
+      created_at: string;
+      option_text: string;
+    } | null;
+  }> {
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    const record = {
+
+    const record1 = {
+      id: 1,
+      topic_id: 1,
+      option_id: 2,
+      wallet_address: walletAddress,
+      vote_amount: "0", //mock havent voted yet
+      created_at: "2024-01-01T12:00:00Z",
+      option_text: "STONKS",
+    };
+
+    const record2 = {
       id: 2,
       topic_id: 2,
       option_id: 1,
       wallet_address: walletAddress,
-      vote_amount: '1',
-      created_at: '2024-01-01T12:00:00Z',
-      option_text: 'STONKS',
+      vote_amount: "1",
+      created_at: "2024-01-01T12:00:00Z",
+      option_text: "STONKS",
     };
 
     return {
       code: 0,
-      message: 'Success',
-      data: record,
+      message: "Success",
+      data: topicId === 1 ? record1 : record2,
     };
   }
 }
