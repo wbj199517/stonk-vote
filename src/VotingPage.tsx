@@ -277,6 +277,11 @@ const VotingPage: React.FC = () => {
       return;
     }
 
+    if(filter !== "now") {
+      alert("您只能在正在进行投票中的话题投票。");
+      return;
+    }
+
     const selectedOption = topics
       .flatMap((topic) => topic.options)
       .find((option) => option.option_text === optionKey);
