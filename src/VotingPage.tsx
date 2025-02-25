@@ -9,10 +9,11 @@ import {
   Modal,
 } from "@mui/material";
 import bs58 from "bs58";
+import { Buffer } from "buffer";
 import SignClient from "@walletconnect/sign-client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
 import { useNavigate } from "react-router-dom";
-import mockBackend, { Topic } from "./mockBackend";
+import backendService, { Topic } from "./backendService";
 import stkLogo from "./image/stklogo.png";
 import bg from "./image/bground1.jpeg";
 import stkguy from "./image/stkguy.png";
@@ -25,7 +26,6 @@ const VotingPage: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [filter, setFilter] = useState<"now" | "past" | "incoming">("now");
   const [votes, setVotes] = useState<{ [key: string]: number }>({});
-  const [totalVotes, setTotalVotes] = useState(0);
   const [clickCount, setClickCount] = useState(0);
   const [showImage, setShowImage] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -88,7 +88,6 @@ const VotingPage: React.FC = () => {
 
   const handleSelectWallet = (walletType: string) => {
     console.log("Selected wallet:", walletType);
-    // Call your connectWallet function here
     setSelectedWallet(walletType);
     connectWalletNew(walletType);
     handleClose();
@@ -113,41 +112,35 @@ const VotingPage: React.FC = () => {
 
     return availableWallets;
   };
-
   const loadTopics = async () => {
-    const response = await mockBackend.fetchTopics();
-    if (response.code === 0 && response.data.length > 0) {
+    const response = await backendService.fetchTopics();
+    if (response.data.length > 0) {
       const fetchedTopics = response.data;
       setTopics(fetchedTopics);
+      let newVotes: { [key: string]: number } = {};
       for (const fetchedTopic of fetchedTopics) {
-        const topicDetailsResponse = await mockBackend.fetchTopicDetails(
+        const topicDetailsResponse = await backendService.fetchTopicDetails(
           fetchedTopic.id
         );
+  
         if (topicDetailsResponse.code === 0 && topicDetailsResponse.data) {
           const topicDetails = topicDetailsResponse.data;
-          setVotes((prevVotes) => ({
-            ...prevVotes,
-            ...topicDetails.options.reduce((acc, option) => {
-              acc[option.option_text] = option.vote_count;
-              return acc;
-            }, {} as { [key: string]: number }),
-          }));
-          setTotalVotes(
-            (prevTotal) =>
-              prevTotal +
-              topicDetails.options.reduce(
-                (acc, option) => acc + option.vote_count,
-                0
-              )
-          );
+  
+          topicDetails.options.forEach((option) => {
+            const voteCount = parseInt(option.vote_count, 10) || 0;
+            newVotes[option.option_text] = voteCount;
+          });
         } else {
           console.error(topicDetailsResponse.message);
         }
       }
+  
+      setVotes(newVotes);
     } else {
       console.error(response.message);
     }
   };
+
   // Connect to wallet
   let signClient: SignClient | null = null; // Store WalletConnect instance globally
   let walletConnectSessionTopic: string | null = null; // Store WalletConnect session topic globally
@@ -255,31 +248,6 @@ const VotingPage: React.FC = () => {
     setClickCount((prev) => prev + 1);
   };
 
-  const checkIfWalletHasVoted = async () => {
-    if (walletAddress) {
-      const updatedHasVoted: { [key: number]: boolean } = {};
-      for (const topic of topics) {
-        const voteRecordResponse = await mockBackend.fetchWalletVoteRecord(
-          topic.id,
-          walletAddress
-        );
-        if (
-          voteRecordResponse.code === 0 &&
-          voteRecordResponse.data?.vote_amount !== "0" &&
-          voteRecordResponse.data?.topic_id === topic.id
-        ) {
-          updatedHasVoted[topic.id] = true;
-        } else {
-          updatedHasVoted[topic.id] = false;
-        }
-      }
-      setHasVoted(updatedHasVoted);
-    }
-  };
-
-  useEffect(() => {
-    checkIfWalletHasVoted();
-  }, [walletAddress, topics]);
 
   useEffect(() => {
     const uniqueOptions = new Set(
@@ -314,37 +282,99 @@ const VotingPage: React.FC = () => {
       .find((option) => option.option_text === optionKey);
     if (!selectedOption) return;
 
-    // Update votes locally for demo/mock use
-    setVotes((prevVotes) => ({
-      ...prevVotes,
-      [optionKey]: (prevVotes[optionKey] || 0) + 1,
-    }));
-    setTotalVotes((prevTotal) => prevTotal + 1);
-    setHasVoted((prev) => ({ ...prev, [topicId]: true }));
+    const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 
-    const nonce = Math.random().toString(36).substring(2, 15);
     const messageContent =
       `Signature for voting:\n` +
       `Topic ID: ${topicId}\n` +
-      `Option ID: ${selectedOption.id}\n` + // Use selectedOption.id instead of selectedOption
+      `Option ID: ${selectedOption.id}\n` + 
       `Wallet: ${walletAddress}\n` +
       `Nonce: ${nonce}\n` +
       `Timestamp: ${new Date().toISOString()}`;
+
+      console.log('Message to sign:', messageContent);
+
+    const messageBytes = new TextEncoder().encode(messageContent);
     let signature: string;
+    console.log('Requesting signature: ', {messageBytes} );
+
     try {
-      signature = await handleSignMessage(messageContent);
+      if (window.ethereum?.isMetaMask && SelectedWallet === "metamask") {
+        console.log("Signing message with MetaMask");
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+        const signedMessage:any = await window.ethereum.request({
+          method: "personal_sign",
+          params: [messageContent,accounts[0]],
+        });
+        console.log("SignedMEssage metamask", signedMessage)
+        const signatureBytes = Uint8Array.from(
+          Buffer.from(signedMessage.replace(/^0x/, ""), "hex")
+        );
+        console.log("signatureBytes metamask", signatureBytes)
+      
+        signature = bs58.encode(signatureBytes);
+      } else if (window.okxwallet?.isOKExWallet && SelectedWallet === "okx") {
+        console.log("Signing message with OKX wallet");
+        const signedMessage:any = await window.okxwallet.solana.signMessage(
+          messageBytes,
+          "utf8"
+        );
+        signature = bs58.encode(signedMessage.signature);
+      } else if (window.solana?.isPhantom && SelectedWallet === "phantom") {
+        console.log("Signing message with Phantom wallet");
+        const signedMessage:any = await window.solana.signMessage(
+          messageBytes,
+          "utf8"
+        );
+        signature = bs58.encode(signedMessage.signature);
+      } else if (SelectedWallet === "walletconnect") {
+        if (!signClient) {
+          signClient = await SignClient.init({
+            projectId: "471f8b666303999a24c8ca965b2384ee",
+          });
+        }
+        const { uri, approval } = await signClient.connect({
+          requiredNamespaces: {
+            eip155: {
+              methods: [
+                "eth_signTransaction",
+                "personal_sign",
+                "eth_sendTransaction",
+              ],
+              chains: ["eip155:1"], // Ethereum mainnet
+              events: ["chainChanged", "accountsChanged"],
+            },
+          },
+        });
+
+        if (uri) {
+          QRCodeModal.open(uri, () => console.log("QR Code Modal Closed"));
+        }
+
+        const session = await approval();
+
+        const address = walletAddress;
+
+        signature = await signClient.request({
+          chainId: "eip155:1",
+          request: {
+            method: "personal_sign",
+            params: [messageContent, address],
+          },
+          topic: session.topic,
+        });
+
+        console.log("WalletConnect Signature:", signature);
+        QRCodeModal.close();
+      } else {
+        throw new Error("未找到支持的钱包");
+      }
     } catch (err: any) {
       if (err.code === 4001) {
-        // User rejected the request
-
-        // Rollback the vote if signing fails
-        setVotes((prevVotes) => ({
-          ...prevVotes,
-          [optionKey]: (prevVotes[optionKey] || 0) - 1,
-        }));
-        setTotalVotes((prevTotal) => prevTotal - 1);
-        setHasVoted((prev) => ({ ...prev, [topicId]: false }));
-        return;
       }
 
       // Handle other potential errors
@@ -352,22 +382,20 @@ const VotingPage: React.FC = () => {
       alert("An error occurred while signing the message. Please try again.");
       return;
     }
-    setHasVoted((prev) => ({ ...prev, [topicId]: true }));
-
+    console.log("final signature",signature);
     // If the signing was successful, send the vote data
-    const response = await mockBackend.sendVoteData(
+    const response = await backendService.sendVoteData(
       topicId,
-      selectedOption.id,
+      selectedOption.id, // Make sure to pass selectedOption.id
       walletAddress,
-      nonce,
-      signature
+      signature,
+      messageContent
     );
     if (response.code !== 0) {
       console.error(response.message);
       alert("Failed to submit your vote. Please try again.");
     }
-    //  uncomment below in real api call
-    // loadTopics();
+    loadTopics();
   };
 
   const handleSignMessage = async (message: string) => {
@@ -458,6 +486,7 @@ const VotingPage: React.FC = () => {
     alert("Wallet disconnected. You can connect again.");
   };
 
+  
   if (topics.length === 0) return null;
 
   return (
@@ -557,7 +586,7 @@ const VotingPage: React.FC = () => {
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {Object.entries(WALLET_INFO)
-                // .filter(([key]) => availableWallets[key]) // Only include available wallets
+                .filter(([key]) => availableWallets[key]) // Only include available wallets
                 .map(([key, { name, icon, downloadUrl }]) => (
                   <Button
                     key={key}
@@ -659,97 +688,104 @@ const VotingPage: React.FC = () => {
             return true;
           })
           .map((topic) => (
-            <Box key={topic.id} sx={{ width: "100%", marginBottom: 4 }}>
-              <Typography
-                variant="h4"
-                gutterBottom
-                sx={{ fontWeight: "bold", color: "#ffffff" }}
-              >
-                {topic.title} {hasVoted[topic.id] && "（您已投票）"}
-              </Typography>
-              <Typography
-                variant="body1"
-                gutterBottom
-                sx={{ color: "#aaaaaa", fontSize: "16px", marginBottom: 2 }}
-              >
-                开始：
-                <span style={{ fontWeight: "bold" }}>
-                  {new Date(topic.start_time).toLocaleString()}
-                </span>{" "}
-                | 结束：
-                <span style={{ fontWeight: "bold" }}>
-                  {new Date(topic.end_time).toLocaleString()}
-                </span>
-              </Typography>
-              <Box sx={{ maxWidth: "600px", margin: "auto", paddingTop: 2 }}>
-                {topic.options.map((option) => {
-                  const percentage = totalVotes
-                    ? (votes[option.option_text] / totalVotes) * 100
-                    : 0;
-                  return (
-                    <Card
-                      variant="outlined"
-                      key={option.option_text}
-                      sx={{
-                        width: "90%",
-                        backgroundColor: "rgba(43, 42, 42, 0.15)",
-                        padding: "2vh",
-                        transition: "background-color 0.3s ease-in-out",
-                        color: "white",
-                        backdropFilter: "blur(8px)",
-                        marginBottom: 2,
-                        border: "1px solid rgba(255, 255, 255, 0.3)",
-                        "&:hover": {
-                          backgroundColor: "rgba(23, 22, 22, 0.45)",
-                        },
-                      }}
-                    >
-                      <Typography variant="h6" gutterBottom>
-                        <strong>
-                          {option.option_text} {percentage.toFixed(0)}% (Total:{" "}
-                          {votes[option.option_text]})
-                        </strong>
-                      </Typography>
-                      <LinearProgress
-                        variant="determinate"
-                        value={percentage}
-                        sx={{
-                          marginBottom: 2,
-                          height: 10,
-                          backgroundColor: "#e0e0e0",
-                          "& .MuiLinearProgress-bar": {
-                            backgroundColor:
-                              optionColors[
-                                option.option_text as keyof typeof optionColors
-                              ] || "#3f51b5",
-                          },
-                        }}
-                      />
-                      <Button
-                        variant="contained"
-                        onClick={() => handleVote(option.option_text, topic.id)}
-                        fullWidth
-                        disabled={hasVoted[topic.id] || !walletAddress}
-                        sx={{
-                          fontWeight: "bold",
-                          backgroundColor: "rgba(23, 22, 22, 0.25)",
-                          color: (theme) =>
-                            hasVoted[topic.id] || !walletAddress
-                              ? "rgba(255, 255, 255, 0.6) !important"
-                              : "white !important",
-                          "&:hover": {
-                            backgroundColor: "#303f9f !important",
-                          },
-                        }}
-                      >
-                        Vote
-                      </Button>
-                    </Card>
-                  );
-                })}
-              </Box>
-              <Divider sx={{ marginY: 4 }} />
-            </Box>
+<Box key={topic.id} sx={{ width: "100%", marginBottom: 4 }}>
+  <Typography
+    variant="h4"
+    gutterBottom
+    sx={{ fontWeight: "bold", color: "#ffffff" }}
+  >
+    {topic.title} {hasVoted[topic.id] && "（您已投票）"}
+  </Typography>
+  <Typography
+    variant="body1"
+    gutterBottom
+    sx={{ color: "#aaaaaa", fontSize: "16px", marginBottom: 2 }}
+  >
+    开始：
+    <span style={{ fontWeight: "bold" }}>
+      {new Date(topic.start_time).toLocaleString()}
+    </span>{" "}
+    | 结束：
+    <span style={{ fontWeight: "bold" }}>
+      {new Date(topic.end_time).toLocaleString()}
+    </span>
+  </Typography>
+
+  
+
+  <Box sx={{ maxWidth: "600px", margin: "auto", paddingTop: 2 }}>
+    {topic.options.map((option) => {
+    const totalVotes = topic.options.reduce((acc, option) => {
+    return acc + (votes[option.option_text] || 0);
+  }, 0);
+      const voteCount = votes[option.option_text] || 0;
+      const percentage = totalVotes ? (voteCount / totalVotes) * 100 : 0;
+
+      return (
+        <Card
+          variant="outlined"
+          key={option.option_text}
+          sx={{
+            width: "90%",
+            backgroundColor: "rgba(43, 42, 42, 0.15)",
+            padding: "2vh",
+            transition: "background-color 0.3s ease-in-out",
+            color: "white",
+            backdropFilter: "blur(8px)",
+            marginBottom: 2,
+            border: "1px solid rgba(255, 255, 255, 0.3)",
+            "&:hover": {
+              backgroundColor: "rgba(23, 22, 22, 0.45)",
+            },
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            <strong>
+              {option.option_text} {percentage.toFixed(0)}% (Total: {voteCount})
+            </strong>
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={percentage}
+            sx={{
+              marginBottom: 2,
+              height: 10,
+              backgroundColor: "#e0e0e0",
+              "& .MuiLinearProgress-bar": {
+                backgroundColor:
+                  optionColors[
+                    option.option_text as keyof typeof optionColors
+                  ] || "#3f51b5",
+              },
+            }}
+          />
+          <Button
+            variant="contained"
+            onClick={() => handleVote(option.option_text, topic.id)}
+            fullWidth
+            disabled={hasVoted[topic.id] || !walletAddress}
+            sx={{
+              fontWeight: "bold",
+              backgroundColor: "rgba(23, 22, 22, 0.25)",
+              color: (theme) =>
+                hasVoted[topic.id] || !walletAddress
+                  ? "rgba(255, 255, 255, 0.6) !important"
+                  : "white !important",
+              "&:hover": {
+                backgroundColor: "#303f9f !important",
+              },
+            }}
+          >
+            Vote
+          </Button>
+        </Card>
+      );
+    })}
+  </Box>
+  <Divider sx={{ marginY: 4 }} />
+</Box>
+
+
           ))}
       </Box>
       {/* Footer */}
