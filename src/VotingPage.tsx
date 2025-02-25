@@ -25,7 +25,7 @@ const VotingPage: React.FC = () => {
   const navigate = useNavigate();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [filter, setFilter] = useState<"now" | "past" | "incoming">("now");
-  const [votes, setVotes] = useState<{ [key: string]: number }>({});
+  const [votes, setVotes] = useState<{ [key: number]: number }>({});
   const [clickCount, setClickCount] = useState(0);
   const [showImage, setShowImage] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -128,7 +128,7 @@ const VotingPage: React.FC = () => {
   
           topicDetails.options.forEach((option) => {
             const voteCount = parseInt(option.vote_count, 10) || 0;
-            newVotes[option.option_text] = voteCount;
+            newVotes[option.id] = voteCount;
           });
         } else {
           console.error(topicDetailsResponse.message);
@@ -716,15 +716,15 @@ const VotingPage: React.FC = () => {
   <Box sx={{ maxWidth: "600px", margin: "auto", paddingTop: 2 }}>
     {topic.options.map((option) => {
     const totalVotes = topic.options.reduce((acc, option) => {
-    return acc + (votes[option.option_text] || 0);
+    return acc + (votes[option.id] || 0);
   }, 0);
-      const voteCount = votes[option.option_text] || 0;
+      const voteCount = votes[option.id] || 0;
       const percentage = totalVotes ? (voteCount / totalVotes) * 100 : 0;
 
       return (
         <Card
           variant="outlined"
-          key={option.option_text}
+          key={option.id}
           sx={{
             width: "90%",
             backgroundColor: "rgba(43, 42, 42, 0.15)",
