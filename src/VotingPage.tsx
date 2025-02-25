@@ -22,21 +22,20 @@ const VotingPage: React.FC = () => {
   const [votes, setVotes] = useState<{ [key: string]: number }>({});
   const [totalVotes, setTotalVotes] = useState(0);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [hasVoted, setHasVoted] = useState<{ [key: number]: boolean }>({});
+  const [hasVoted, setHasVoted] = useState<{ [key: number]:boolean }>({});    //
   const [loading, setLoading] = useState(true);
   const [optionColors, setOptionColors] = useState<{ [key: string]: string }>({
     USDT: '#4CAF50',
     SOL: '#FF9800',
     STONKS: '#2196F3',
   });
-
+  const [voteloading,setVoteLoading] = useState(false)
   useEffect(() => {
     const loadTopics = async () => {
 
       setLoading(true);
       console.log('mockBackend.fetchTopicsReq()',mockBackend.fetchTopicsReq)
       const response = await mockBackend.fetchTopicsReq();
-      debugger
       if (response.code === 0 && response.data.length > 0) {
         const fetchedTopics = response.data;
         setTopics(fetchedTopics);
@@ -52,7 +51,7 @@ const VotingPage: React.FC = () => {
               }, {} as { [key: string]: number }),
             }));
             setTotalVotes((prevTotal) =>
-              prevTotal + topicDetails.options.reduce((acc, option) => acc + option.vote_count, 0)
+              prevTotal + topicDetails.options.reduce((acc, option) => acc +  Number(option.vote_count), 0)
             );
           } else {
             console.error(topicDetailsResponse.message);
@@ -66,17 +65,26 @@ const VotingPage: React.FC = () => {
 
     loadTopics();
   }, []);
-
+  console.log(topics);
   const checkIfWalletHasVoted = async () => {
     if (walletAddress) {
       const updatedHasVoted: { [key: number]: boolean } = {};
       for (const topic of topics) {
-        debugger
+        console.log(topic);
         const voteRecordResponse = await mockBackend.fetchWalletVoteRecord(topic.id, walletAddress);
-        if (voteRecordResponse.code === 0 && voteRecordResponse.data?.vote_amount !== '0' && voteRecordResponse.data?.topic_id === topic.id) {
-          updatedHasVoted[topic.id] = true;
-        } else {
-          updatedHasVoted[topic.id] = false;
+        console.log(voteRecordResponse);
+        if (voteRecordResponse.code === 0  ) {
+          const currentvote = voteRecordResponse.data?.find(i=>i.wallet_address === walletAddress)
+          // current user's vote
+          if(currentvote){
+            if(currentvote.option_id===1){
+              updatedHasVoted[topic.id] = true;
+            }else{
+              updatedHasVoted[topic.id] = false;
+            }
+          }
+
+
         }
       }
       setHasVoted(updatedHasVoted);
@@ -100,7 +108,7 @@ const VotingPage: React.FC = () => {
     });
   }, [topics]);
 
-  const handleVote = async (optionKey: string, topicId: number) => {
+  const handleVote = async (optionKey: number, topicId: number) => {
     if (!walletAddress) {
       alert('Please connect your wallet to vote.');
       return;
@@ -111,20 +119,20 @@ const VotingPage: React.FC = () => {
       return;
     }
 
-    const selectedOption = topics.flatMap((topic) => topic.options).find((option) => option.option_text === optionKey);
+    const selectedOption = topics.flatMap((topic) => topic.options).find((option) => option.id === optionKey);
     if (!selectedOption) return;
 
-    setVotes((prevVotes) => ({
-      ...prevVotes,
-      [optionKey]: prevVotes[optionKey] + 1,
-    }));
-    setTotalVotes((prevTotal) => prevTotal + 1);
-    setHasVoted((prev) => ({ ...prev, [topicId]: true }));
-
     const nonce = Math.random().toString(36).substring(2, 15);
+    setVoteLoading(true)
     const response = await mockBackend.submitVoteReq(topicId, selectedOption.id, walletAddress, nonce);
     if (response.code !== 0) {
-      console.error(response.message);
+      setVotes((prevVotes) => ({
+        ...prevVotes,
+        [optionKey]: prevVotes[optionKey] + 1,
+      }));
+      setTotalVotes((prevTotal) => prevTotal + 1);
+      setHasVoted((prev) => ({ ...prev, [topicId]: true }));
+      setVoteLoading(false)
     }
   };
 
@@ -329,15 +337,16 @@ const VotingPage: React.FC = () => {
                     />
                     <Button
                       variant="contained"
-                      onClick={() => handleVote(option.option_text, topic.id)}
+                      onClick={() => handleVote(option.id, topic.id)}
                       fullWidth
-                      disabled={hasVoted[topic.id] || !walletAddress}
+                      disabled={hasVoted[topic.id] || !walletAddress || voteloading}
                       sx={{
                         backgroundColor: '#3f51b5',
                         color: 'white',
                         '&:hover': {
                           backgroundColor: '#303f9f',
                         },
+                        cursor: 'pointer',
                       }}
                     >
                       Vote

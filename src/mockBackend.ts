@@ -82,7 +82,6 @@ class MockBackend {
       timestamp: new Date().toISOString(),
     };
 
-    console.log('Sending vote data:', JSON.stringify(messageContent, null, 2)); // Pretty print JSON
 
     // Simulate a successful vote submission
     //await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -119,10 +118,9 @@ class MockBackend {
     // };
   }
 
-  public async fetchWalletVoteRecord(topicId: number, walletAddress: string): Promise<{ code: number; message: string; data: { id: number; topic_id: number; option_id: number; wallet_address: string; vote_amount: string; created_at: string; option_text: string } | null }> {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  public async fetchWalletVoteRecord(topicId: number, walletAddress: string): Promise<{ code: number; message: string; data: { id: number; topic_id: number; option_id: number; wallet_address: string; vote_amount: string; created_at: string; option_text: string }[] | null }> {
     return request(getVotingRecordsUrl(topicId),{method:'GET'});
-    const record = {
+   /* const record = {
       id: 2,
       topic_id: 2,
       option_id: 1,
@@ -136,7 +134,7 @@ class MockBackend {
       code: 0,
       message: 'Success',
       data: record,
-    };
+    };*/
   }
 }
 

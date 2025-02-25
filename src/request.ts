@@ -49,7 +49,7 @@ class FetchInterceptor {
     }
 }
 
-const api = new FetchInterceptor('http://localhost:9000');
+const api = new FetchInterceptor('http://8.211.146.92:9000');
 
 // 添加请求拦截器（比如添加 token）
 api.addRequestInterceptor((url, options) => {
