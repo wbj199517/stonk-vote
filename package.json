@@ -18,7 +18,7 @@
     "@types/react-dom": "^19.0.4",
     "@walletconnect/ethereum-provider": "^2.18.1",
     "@walletconnect/qrcode-modal": "^1.8.0",
-    "@walletconnect/sign-client": "^2.18.1",
+    "@walletconnect/sign-client": "^2.19.0",
     "@walletconnect/web3-provider": "^1.8.0",
     "@walletconnect/window-metadata": "^1.0.1",
     "axios": "^1.7.9",

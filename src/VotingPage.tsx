@@ -13,7 +13,7 @@ import { Buffer } from "buffer";
 import SignClient from "@walletconnect/sign-client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
 import { useNavigate } from "react-router-dom";
-import backendService, { Topic } from "./backendService";
+import backendService, { Topic } from "./mockBackend";
 import stkLogo from "./image/stklogo.png";
 import bg from "./image/bground1.jpeg";
 import stkguy from "./image/stkguy.png";
@@ -283,7 +283,7 @@ const VotingPage: React.FC = () => {
 
     const selectedOption = topics
       .flatMap((topic) => topic.options)
-      .find((option) => option.option_text === optionKey);
+      .find((option) => option.id === optionKey);
     if (!selectedOption) return;
 
     const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)))
@@ -297,7 +297,7 @@ const VotingPage: React.FC = () => {
       `Wallet: ${walletAddress}\n` +
       `Nonce: ${nonce}\n` +
       `Timestamp: ${new Date().toISOString()}`;
-
+    console.log(topics);
     console.log("Message to sign:", messageContent);
 
     const messageBytes = new TextEncoder().encode(messageContent);
@@ -389,11 +389,13 @@ const VotingPage: React.FC = () => {
     console.log("final signature", signature);
     // If the signing was successful, send the vote data
     const response = await backendService.sendVoteData(
-      topicId,
-      selectedOption.id, // Make sure to pass selectedOption.id
-      walletAddress,
-      signature,
-      messageContent
+        {
+          topicId,
+          optionId:selectedOption.id, // Make sure to pass selectedOption.id
+          walletAddress,
+          signature,
+          message:messageContent
+        }
     );
     if (response.code !== 0) {
       console.error(response.message);
@@ -765,7 +767,7 @@ const VotingPage: React.FC = () => {
                       />
                       <Button
                         variant="contained"
-                        onClick={() => handleVote(option.option_text, topic.id)}
+                        onClick={() => handleVote(option.id, topic.id)}
                         fullWidth
                         disabled={hasVoted[topic.id] || !walletAddress}
                         sx={{
