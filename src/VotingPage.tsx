@@ -74,6 +74,7 @@ const VotingPage: React.FC = () => {
     setAvailableWallets(detectedWallets);
   }, []);
 
+  const [voteloading,setVoteLoading] = useState(false)
   useEffect(() => {
     loadTopics();
   }, []);
@@ -264,7 +265,7 @@ const VotingPage: React.FC = () => {
     });
   }, [topics]);
 
-  const handleVote = async (optionKey: string, topicId: number) => {
+  const handleVote = async (optionKey: number, topicId: number) => {
     if (!walletAddress) {
       alert("Please connect your wallet to vote.");
       return;
