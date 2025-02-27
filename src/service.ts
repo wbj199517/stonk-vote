@@ -21,7 +21,7 @@ export interface Topic {
   options: Option[];
 }
 
-class MockBackend {
+class Service {
 
   public async fetchTopics(): Promise<{ code: number; message: string; data: Topic[] }> {
     return request(fetchTopicsUrl,{method:'GET'})
@@ -46,10 +46,10 @@ class MockBackend {
 
   }
 
-  public async fetchWalletVoteRecord(topicId: number, walletAddress: string): Promise<{ code: number; message: string; data: { id: number; topic_id: number; option_id: number; wallet_address: string; vote_amount: string; created_at: string; option_text: string }[] | null }> {
+ /* public async fetchWalletVoteRecord(topicId: number, walletAddress: string): Promise<{ code: number; message: string; data: { id: number; topic_id: number; option_id: number; wallet_address: string; vote_amount: string; created_at: string; option_text: string }[] | null }> {
     return request(getVotingRecordsUrl(topicId),{method:'GET'});
-  }
+  }*/
 }
 
-const backendService = new MockBackend();
+const backendService = new Service();
 export default backendService;

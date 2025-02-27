@@ -3,5 +3,18 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "baseUrl": ".", // 设置 baseUrl 为项目根目录
+    "paths": {
+      "@/*": ["src/*"] // 设置 @ 映射到 src 目录
+    },
+    "esModuleInterop": true, // 确保对 CommonJS 模块的兼容性
+    "skipLibCheck": true, // 可以跳过库的类型检查
+    "strict": true // 启用严格模式（可选）
+  },
+  "include": [
+    "src/**/*", // 确保包含 src 文件夹
+    "vite.config.ts" // 如果你使用 vite.config.ts，确保也包含
   ]
 }
