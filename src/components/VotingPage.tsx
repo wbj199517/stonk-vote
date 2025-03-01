@@ -15,7 +15,7 @@ import {
   useDisconnect,
 } from "@reown/appkit/react";
 import { useNavigate } from "react-router-dom";
-import backendService, { Topic } from "./backendService";
+import backendService, { Topic } from "@/service";
 import stkLogo from "../assets/stklogo.png";
 import bg from "../assets/bground1.jpeg";
 import stkguy from "../assets/stkguy.png";
@@ -154,7 +154,9 @@ const VotingPage: React.FC = () => {
       signature,
       messageContent
     );
-    if (response.code !== 0) {
+    if(response.code == 0){
+        alert("投票成功！");
+    } else{
       console.error(response.message);
       setErrMessage("投票失败, 错误信息： " + response.message); 
       setShowErr(true);

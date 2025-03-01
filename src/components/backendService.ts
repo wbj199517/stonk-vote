@@ -132,5 +132,5 @@ class MockBackend {
   }
 }
 
-const mockBackend = new MockBackend();
-export default mockBackend;
+const backendService = new MockBackend();
+export default backendService;
