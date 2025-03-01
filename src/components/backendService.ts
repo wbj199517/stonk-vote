@@ -14,9 +14,9 @@ export interface Topic {
   created_at: string;
   options: Option[];
 }
-// const API_BASE_URL = "http://localhost:9000/api";
+const API_BASE_URL = "http://localhost:9000/api";
 // const API_BASE_URL = "http://8.211.146.92:9000/api";
-const API_BASE_URL = "/api";
+// const API_BASE_URL = "/api";
 
 class MockBackend {
   // private mockData: Topic[] = [
@@ -127,7 +127,11 @@ class MockBackend {
         throw new Error(response.data.message); // Use backend error message
       }
     } catch (err: any) {
-      return { code: -1, message: err.response.data.message || "提交投票失败" , data: null };
+      return {
+        code: -1,
+        message: err.response.data.message || "提交投票失败",
+        data: null,
+      };
     }
   }
 }

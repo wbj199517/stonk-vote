@@ -9,6 +9,8 @@ import {
   Modal,
 } from "@mui/material";
 import bs58 from "bs58";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 import {
   useAppKitAccount,
   useAppKitProvider,
@@ -38,6 +40,7 @@ const VotingPage: React.FC = () => {
   const { address, isConnected } = useAppKitAccount();
   const { walletProvider } = useAppKitProvider<Provider>("solana");
   const { disconnect } = useDisconnect();
+  const { t } = useTranslation();
 
   useEffect(() => {
     loadTopics();
@@ -107,13 +110,13 @@ const VotingPage: React.FC = () => {
 
   const handleVote = async (optionKey: string, topicId: number) => {
     if (!address) {
-      setErrMessage("请连接钱包后再投票");
+      setErrMessage(t("wallet_connect_warn"));
       setShowErr(true);
       return;
     }
 
     if (filter !== "now") {
-      setErrMessage("只有在投票期间才能投票");
+      setErrMessage("t('vote_time_warn')");
       setShowErr(true);
       return;
     }
@@ -154,12 +157,15 @@ const VotingPage: React.FC = () => {
       signature,
       messageContent
     );
+
     if (response.code !== 0) {
       console.error(response.message);
-      setErrMessage("投票失败, 错误信息： " + response.message); 
+      const err_message =
+        t("vote_failed") + t(`response_messages.${response.code}`);
+      setErrMessage(err_message);
       setShowErr(true);
-    }else{
-      setErrMessage("投票成功，谢谢参与！"); 
+    } else {
+      setErrMessage(t("vote_success"));
       setShowErr(true);
     }
     loadTopics();
@@ -168,40 +174,40 @@ const VotingPage: React.FC = () => {
   return (
     <div>
       <Modal
-  open={showErr}
-  onClose={() => setShowErr(false)}
-  aria-labelledby="error-modal-title"
-  aria-describedby="error-modal-description"
->
-  <Box
-    sx={{
-      position: "absolute",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      width: 400,
-      bgcolor: "background.paper",
-      boxShadow: 24,
-      p: 4,
-      borderRadius: 2,
-      textAlign: "center",
-    }}
-  >
-    <Typography id="error-modal-title" variant="h6" component="h2">
-      提示窗口
-    </Typography>
-    <Typography id="error-modal-description" sx={{ mt: 2 }}>
-      {errMessage}
-    </Typography>
-    <Button
-      onClick={() => setShowErr(false)}
-      variant="contained"
-      sx={{ mt: 2 }}
-    >
-      Close
-    </Button>
-  </Box>
-</Modal>
+        open={showErr}
+        onClose={() => setShowErr(false)}
+        aria-labelledby="error-modal-title"
+        aria-describedby="error-modal-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            textAlign: "center",
+          }}
+        >
+          <Typography id="error-modal-title" variant="h6" component="h2">
+            {t("info_box")}
+          </Typography>
+          <Typography id="error-modal-description" sx={{ mt: 2 }}>
+            {errMessage}
+          </Typography>
+          <Button
+            onClick={() => setShowErr(false)}
+            variant="contained"
+            sx={{ mt: 2 }}
+          >
+            {t("Close")}
+          </Button>
+        </Box>
+      </Modal>
 
       <Box
         sx={{
@@ -264,10 +270,13 @@ const VotingPage: React.FC = () => {
           }}
           onClick={handleLogoClick}
         />
-        <appkit-button label="连接钱包" />
+
+        <LanguageSwitcher />
+        <br />
+        <appkit-button label={t("connect_wallet")} />
         {isConnected ? (
           <Button variant="outlined" color="error" onClick={handleDisconnect}>
-            断开钱包
+            {t("disconnect_wallet")}
           </Button>
         ) : (
           <></>
@@ -278,27 +287,27 @@ const VotingPage: React.FC = () => {
             variant="body2"
             sx={{ color: "#ffffff", marginBottom: 1, marginTop: 2 }}
           >
-            Filter Topics:
+            {t("filter_topic")}
           </Typography>
           <Button
             variant={filter === "now" ? "contained" : "outlined"}
             onClick={() => setFilter("now")}
             sx={{ marginRight: 1 }}
           >
-            Now
+            {t("now")}
           </Button>
           <Button
             variant={filter === "past" ? "contained" : "outlined"}
             onClick={() => setFilter("past")}
             sx={{ marginRight: 1 }}
           >
-            Past
+            {t("past")}
           </Button>
           <Button
             variant={filter === "incoming" ? "contained" : "outlined"}
             onClick={() => setFilter("incoming")}
           >
-            Incoming
+            {t("upcoming")}
           </Button>
         </Box>
 
@@ -339,11 +348,11 @@ const VotingPage: React.FC = () => {
                   gutterBottom
                   sx={{ color: "#aaaaaa", fontSize: "16px", marginBottom: 2 }}
                 >
-                  开始：
+                  {t("start_date")}
                   <span style={{ fontWeight: "bold" }}>
                     {new Date(topic.start_time).toLocaleString()}
                   </span>{" "}
-                  | 结束：
+                  | {t("end_date")}
                   <span style={{ fontWeight: "bold" }}>
                     {new Date(topic.end_time).toLocaleString()}
                   </span>
@@ -382,8 +391,8 @@ const VotingPage: React.FC = () => {
                       >
                         <Typography variant="h6" gutterBottom>
                           <strong>
-                            {option.option_text} {percentage.toFixed(0)}%
-                            (Total: {voteCount})
+                            {option.option_text} {percentage.toFixed(0)}% (
+                            {t("total_vote")}: {voteCount})
                           </strong>
                         </Typography>
                         <LinearProgress
@@ -420,7 +429,7 @@ const VotingPage: React.FC = () => {
                             },
                           }}
                         >
-                          Vote
+                          {t("vote")}
                         </Button>
                       </Card>
                     );
@@ -443,7 +452,7 @@ const VotingPage: React.FC = () => {
           textAlign: "center",
         }}
       >
-        <Typography variant="body2">Powered by STONKS Community</Typography>
+        <Typography variant="body2">{t("footer")}</Typography>
       </Box>
     </div>
   );
