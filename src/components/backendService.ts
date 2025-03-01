@@ -14,8 +14,8 @@ export interface Topic {
   created_at: string;
   options: Option[];
 }
-const API_BASE_URL = "http://localhost:9000/api";
-// const API_BASE_URL = "http://8.211.146.92:9000/api";
+// const API_BASE_URL = "http://localhost:9000/api";
+const API_BASE_URL = "http://8.211.146.92:9000/api";
 // const API_BASE_URL = "/api";
 
 class MockBackend {

@@ -22,6 +22,7 @@ const generalConfig = {
   themeMode: "dark" as const,
   features: {
     analytics: true, // Optional - defaults to your Cloud configuration
+    
   },
   themeVariables: {
     "--w3m-accent": "#000000",
@@ -32,6 +33,9 @@ const generalConfig = {
 createAppKit({
   adapters: [wagmiAdapter, solanaWeb3JsAdapter],
   ...generalConfig,
+  features: {
+    connectMethodsOrder: ['wallet'],
+  }
 });
 
 export function App() {
