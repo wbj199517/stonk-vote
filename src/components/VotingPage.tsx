@@ -6,6 +6,7 @@ import {
   LinearProgress,
   Card,
   Divider,
+  Modal,
 } from "@mui/material";
 import bs58 from "bs58";
 import {
@@ -27,6 +28,8 @@ const VotingPage: React.FC = () => {
   const [votes, setVotes] = useState<{ [key: number]: number }>({});
   const [clickCount, setClickCount] = useState(0);
   const [showImage, setShowImage] = useState(false);
+  const [errMessage, setErrMessage] = useState("");
+  const [showErr, setShowErr] = useState(false);
   const [optionColors, setOptionColors] = useState<{ [key: string]: string }>({
     USDT: "#4CAF50",
     SOL: "#FF9800",
@@ -104,12 +107,14 @@ const VotingPage: React.FC = () => {
 
   const handleVote = async (optionKey: string, topicId: number) => {
     if (!address) {
-      alert("Please connect your wallet to vote.");
+      setErrMessage("请连接钱包后再投票");
+      setShowErr(true);
       return;
     }
 
     if (filter !== "now") {
-      alert("您只能在正在进行投票中的话题投票。");
+      setErrMessage("只有在投票期间才能投票");
+      setShowErr(true);
       return;
     }
 
@@ -151,13 +156,53 @@ const VotingPage: React.FC = () => {
     );
     if (response.code !== 0) {
       console.error(response.message);
-      alert("投票失败，请重新投票。");
+      setErrMessage("投票失败, 错误信息： " + response.message); 
+      setShowErr(true);
+    }else{
+      setErrMessage("投票成功，谢谢参与！"); 
+      setShowErr(true);
     }
     loadTopics();
   };
 
   return (
     <div>
+      <Modal
+  open={showErr}
+  onClose={() => setShowErr(false)}
+  aria-labelledby="error-modal-title"
+  aria-describedby="error-modal-description"
+>
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: 400,
+      bgcolor: "background.paper",
+      boxShadow: 24,
+      p: 4,
+      borderRadius: 2,
+      textAlign: "center",
+    }}
+  >
+    <Typography id="error-modal-title" variant="h6" component="h2">
+      提示窗口
+    </Typography>
+    <Typography id="error-modal-description" sx={{ mt: 2 }}>
+      {errMessage}
+    </Typography>
+    <Button
+      onClick={() => setShowErr(false)}
+      variant="contained"
+      sx={{ mt: 2 }}
+    >
+      Close
+    </Button>
+  </Box>
+</Modal>
+
       <Box
         sx={{
           textAlign: "center",
