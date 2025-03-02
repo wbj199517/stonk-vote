@@ -392,7 +392,7 @@ const VotingPage: React.FC = () => {
                         <Typography variant="h6" gutterBottom>
                           <strong>
                             {option.option_text} {percentage.toFixed(0)}% (
-                            {t("total_vote")}: {voteCount})
+                            {t("total_vote")}: {voteCount.toLocaleString()})
                           </strong>
                         </Typography>
                         <LinearProgress
