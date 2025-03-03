@@ -60,7 +60,7 @@ class MockBackend {
         error.response?.data || error.message
       );
       // please enable the below comment when use the real backend. This is for demo use.
-      return { code: -1, message: "Failed to fetch topic", data: [] };
+      return { code: error.response?.data?.code ?? -1, message: "Failed to fetch topic", data: [] };
       // return {
       //   code: 0,
       //   message: "Success",
@@ -95,7 +95,7 @@ class MockBackend {
       //   data: topic,
       // };
       // please enable the below comment when use the real backend. This is for demo use.
-      return { code: -1, message: "Failed to fetch topic", data: null };
+      return { code: error.response?.data?.code ?? -1, message: "Failed to fetch topic", data: null };
     }
   }
 
@@ -128,7 +128,7 @@ class MockBackend {
       }
     } catch (err: any) {
       return {
-        code: -1,
+        code: err.response?.data?.code ?? -1,
         message: err.response.data.message || "提交投票失败",
         data: null,
       };

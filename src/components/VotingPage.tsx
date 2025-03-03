@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  AppBar,
   Button,
   Typography,
   Box,
@@ -7,6 +8,7 @@ import {
   Card,
   Divider,
   Modal,
+  Toolbar,
 } from "@mui/material";
 import bs58 from "bs58";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -173,6 +175,27 @@ const VotingPage: React.FC = () => {
 
   return (
     <div>
+           {/* HEADER */}
+           <AppBar position="static" sx={{ backgroundColor: "black", paddingY: 1 }}>
+        <Toolbar sx={{ display: "flex", justifyContent: "space-evenly", }}>
+          {/* Home Button (Left) */}
+          <Typography
+            variant="h6"
+            component="a"
+            onClick={() => navigate("/")}
+            sx={{
+              textDecoration: "none",
+              color: "white",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >
+            Home
+          </Typography>
+
+          <appkit-button label={t("connect_wallet")} />
+        </Toolbar>
+      </AppBar>
       <Modal
         open={showErr}
         onClose={() => setShowErr(false)}
@@ -242,23 +265,7 @@ const VotingPage: React.FC = () => {
           />
         )}
 
-        <Button
-          variant="text"
-          onClick={() => navigate("/")}
-          sx={{
-            position: "absolute",
-            top: { xs: "3%", sm: "5%" }, // Responsive positioning
-            left: { xs: "3%", sm: "5%" },
-            color: "white",
-            fontSize: { xs: "1rem", sm: "1.2rem" }, // Responsive font size
-            fontWeight: "bold",
-            "&:hover": {
-              backgroundColor: "rgba(255, 255, 255, 0.1)",
-            },
-          }}
-        >
-          Home
-        </Button>
+
         <img
           src={stkLogo}
           alt="Logo"
@@ -272,15 +279,7 @@ const VotingPage: React.FC = () => {
         />
 
         <LanguageSwitcher />
-        <br />
-        <appkit-button label={t("connect_wallet")} />
-        {isConnected ? (
-          <Button variant="outlined" color="error" onClick={handleDisconnect}>
-            {t("disconnect_wallet")}
-          </Button>
-        ) : (
-          <></>
-        )}
+        
 
         <Box sx={{ marginBottom: 4 }}>
           <Typography
@@ -389,17 +388,31 @@ const VotingPage: React.FC = () => {
                           },
                         }}
                       >
-                        <Typography variant="h6" gutterBottom>
-                          <strong>
-                            {option.option_text} {percentage.toFixed(0)}% (
-                            {t("total_vote")}: {voteCount.toLocaleString()})
-                          </strong>
-                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            width: "100%",
+                          }}
+                        >
+                          <Typography variant="h6">
+                            <strong>{option.option_text}</strong>
+                          </Typography>
+                          <Typography variant="h6">
+                            <strong>
+                              {percentage.toFixed(0)}% ({t("total_vote")}:{" "}
+                              {voteCount.toLocaleString()})
+                            </strong>
+                          </Typography>
+                        </Box>
+
                         <LinearProgress
                           variant="determinate"
                           value={percentage}
                           sx={{
                             marginBottom: 2,
+                            marginTop: 1,
                             height: 10,
                             backgroundColor: "#e0e0e0",
                             "& .MuiLinearProgress-bar": {
@@ -410,6 +423,7 @@ const VotingPage: React.FC = () => {
                             },
                           }}
                         />
+
                         <Button
                           variant="contained"
                           onClick={() =>
